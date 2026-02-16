@@ -9,6 +9,8 @@ public class PlayerController : MonoBehaviour
     CharacterController characterController;
     public float movementSpeed;
 
+    CameraFollow cameraFollow;
+
     void Awake()
     {
         characterController = GetComponent<CharacterController>();
