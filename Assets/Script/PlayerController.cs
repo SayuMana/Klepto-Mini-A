@@ -25,6 +25,10 @@ public class PlayerController : MonoBehaviour
         float moveZ = Input.GetAxis("Vertical");
         Vector3 move = new Vector3(moveX, 0, moveZ);
 
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            characterController.Move(move * (movementSpeed + 5) * Time.deltaTime);
+        }
         characterController.Move(move * movementSpeed * Time.deltaTime);
 
         if (moveX == 0 && moveZ == 0) return;
