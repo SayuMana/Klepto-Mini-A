@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+
 public class HidingSystem : MonoBehaviour
 {
     [Header("Settings")]
@@ -8,21 +7,23 @@ public class HidingSystem : MonoBehaviour
     
     [Header("Status")]
     public bool isHiding = false;
-    private GameObject currentHidingSpot;
+    public GameObject currentHidingSpot; 
 
     private PlayerController playerController;
     private CameraFollow cameraFollow;
+    
+    private MeshRenderer playerMesh; 
 
     void Start()
     {
         playerController = GetComponent<PlayerController>();
-        
         cameraFollow = Camera.main.GetComponent<CameraFollow>();
+        
+        playerMesh = GetComponent<MeshRenderer>(); 
     }
 
     void Update()
     {
-        
         if (Input.GetKeyDown(hidingKey) && currentHidingSpot != null)
         {
             if (!isHiding) EnterHiding();
@@ -34,43 +35,34 @@ public class HidingSystem : MonoBehaviour
     {
         isHiding = true;
         
-       
-        Vector3 targetPos = currentHidingSpot.transform.position;
-        targetPos.y = transform.position.y; 
-        transform.position = targetPos;
-
-        
         playerController.enabled = false;
+        playerMesh.enabled = false; 
+
         if(cameraFollow != null) cameraFollow.enabled = false;
 
-        //Debug.Log("Sembunyi di: " + currentHidingSpot.name);
+        Camera.main.transform.position = currentHidingSpot.transform.position + new Vector3(0, 2, -4);
+        Camera.main.transform.LookAt(currentHidingSpot.transform);
+
+        Debug.Log("Sembunyi...");
     }
 
     void ExitHiding()
     {
         isHiding = false;
 
-        
         playerController.enabled = true;
-        if(cameraFollow != null) cameraFollow.enabled = true;
+        playerMesh.enabled = true; 
 
-      //  Debug.Log("Keluar dari tempat sembunyi");
+        if(cameraFollow != null) cameraFollow.enabled = true;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("HidingSpot"))
-        {
-            currentHidingSpot = other.gameObject;
-        }
+        if (other.CompareTag("HidingSpot")) currentHidingSpot = other.gameObject;
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("HidingSpot"))
-        {
-            currentHidingSpot = null;
-        }
+        if (other.CompareTag("HidingSpot")) currentHidingSpot = null;
     }
 }
-
