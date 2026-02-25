@@ -29,7 +29,11 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKey(KeyCode.LeftShift))
         {
-            characterController.Move(move * (movementSpeed + 5) * Time.deltaTime);
+            characterController.Move(move * (movementSpeed + 5) * Time.deltaTime); // sprint
+        }
+        else if (Input.GetKey(KeyCode.LeftControl))
+        {
+            characterController.Move(move * (movementSpeed - 5) * Time.deltaTime); // sneak
         }
         characterController.Move(move * movementSpeed * Time.deltaTime);
 
