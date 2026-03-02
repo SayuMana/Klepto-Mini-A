@@ -16,13 +16,13 @@ public class DoorManager : MonoBehaviour
     private Vector3 closedPos;
     private Vector3 openPos;
 
-    public float moveY;
+    public float moveX, moveY;
     public float speedDoor;
 
     void Awake()
     {
         closedPos = door.transform.localPosition;
-        openPos = closedPos + new Vector3(0, moveY, 0);
+        openPos = closedPos + new Vector3(moveX, moveY, 0);
     }
 
     void OnTriggerEnter(Collider other)
