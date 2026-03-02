@@ -5,19 +5,32 @@ using UnityEngine;
 public class DoorManager : MonoBehaviour
 {
     public GameObject door;
+
+    public string requiredKeyID;
+    public int requiredAmount = 1;
+    bool canOpen;
+
     private bool playerInRange = false;
+    PlayerInventory playerInventory;
 
     private Vector3 closedPos;
     private Vector3 openPos;
 
-    public float closedPosY;
+    public float moveY;
     public float speedDoor;
+
+    void Awake()
+    {
+        closedPos = door.transform.localPosition;
+        openPos = closedPos + new Vector3(0, moveY, 0);
+    }
 
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
             playerInRange = true;
+            playerInventory = other.GetComponent<PlayerInventory>();
         }
     }
 
@@ -29,15 +42,17 @@ public class DoorManager : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        closedPos = door.transform.localPosition;
-        openPos = closedPos + new Vector3(0, closedPosY, 0);
-    }
-
     void Update()
     {
-        if (playerInRange)
+        if (playerInventory == null) return;  
+
+        canOpen = true;
+        if (!string.IsNullOrEmpty(requiredKeyID))
+        {
+            canOpen = playerInventory.HasKey(requiredKeyID, requiredAmount);
+        }
+
+        if (playerInRange && canOpen)
         {
             door.transform.localPosition = Vector3.Lerp(
                 door.transform.localPosition,

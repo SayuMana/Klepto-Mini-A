@@ -4,14 +4,17 @@ using UnityEngine;
 
 public class ItemPickup : MonoBehaviour
 {
-    public GameObject itemToPickup;
+    public string keyID;
     private bool playerInRange = false;
+    PlayerInventory playerInventory;
+
 
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
             playerInRange = true;
+            playerInventory = other.GetComponent<PlayerInventory>();
         }
     }
 
@@ -27,7 +30,11 @@ public class ItemPickup : MonoBehaviour
     {
         if (playerInRange && Input.GetKeyDown(KeyCode.E))
         {
-            Destroy(gameObject);
+            if (playerInventory != null)
+            {
+                playerInventory.AddKey(keyID);
+                Destroy(gameObject);
+            }
         }
     }
 }
