@@ -11,6 +11,7 @@ public class ItemPickup : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            Debug.Log("Player dalam range");
             playerInRange = true;
         }
     }
@@ -19,6 +20,7 @@ public class ItemPickup : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            Debug.Log("Player keluar dari range");
             playerInRange = false;
         }
     }
@@ -27,6 +29,7 @@ public class ItemPickup : MonoBehaviour
     {
         if (playerInRange && Input.GetKeyDown(KeyCode.E))
         {
+            Debug.Log("Item diambil");
             Destroy(gameObject);
         }
     }
