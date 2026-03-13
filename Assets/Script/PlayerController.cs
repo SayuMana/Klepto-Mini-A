@@ -9,8 +9,6 @@ public class PlayerController : MonoBehaviour
     CharacterController characterController;
     public float movementSpeed;
 
-    CameraFollow cameraFollow;
-
     void Awake()
     {
         characterController = GetComponent<CharacterController>();
@@ -23,8 +21,8 @@ public class PlayerController : MonoBehaviour
 
     void Movement()
     {
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        float moveX = -Input.GetAxis("Horizontal");
+        float moveZ = -Input.GetAxis("Vertical");
         Vector3 move = new Vector3(moveX, 0, moveZ);
 
         if (Input.GetKey(KeyCode.LeftShift))
