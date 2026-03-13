@@ -8,6 +8,8 @@ public class PlayerController : MonoBehaviour
 {
     CharacterController characterController;
     public float movementSpeed;
+    public Animator animator;
+
 
     void Awake()
     {
@@ -34,6 +36,8 @@ public class PlayerController : MonoBehaviour
             characterController.Move(move * (movementSpeed - 5) * Time.deltaTime); // sneak
         }
         characterController.Move(move * movementSpeed * Time.deltaTime);
+
+        float moveAnim = new Vector2(moveX, moveZ).magnitude;
 
         if (moveX == 0 && moveZ == 0) return;
         float heading = MathF.Atan2(moveX, moveZ);
