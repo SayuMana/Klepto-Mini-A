@@ -4,18 +4,17 @@ using UnityEngine;
 
 public class ItemPickup : MonoBehaviour
 {
-    public GameObject itemToPickup;
+    public string keyID;
     private bool playerInRange = false;
+    PlayerInventory playerInventory;
 
-    public PlayerController player;
 
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            player = other.GetComponent<PlayerController>();
-            Debug.Log("Player dalam range");
             playerInRange = true;
+            playerInventory = other.GetComponent<PlayerInventory>();
         }
     }
 
@@ -23,7 +22,6 @@ public class ItemPickup : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            Debug.Log("Player keluar dari range");
             playerInRange = false;
         }
     }
@@ -32,9 +30,11 @@ public class ItemPickup : MonoBehaviour
     {
         if (playerInRange && Input.GetKeyDown(KeyCode.E))
         {
-            Debug.Log("Item diambil");
-            player.animator.SetTrigger("PickUp");
-            Destroy(gameObject);
+            if (playerInventory != null)
+            {
+                playerInventory.AddKey(keyID);
+                Destroy(gameObject);
+            }
         }
     }
 }
