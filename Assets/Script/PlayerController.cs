@@ -11,6 +11,10 @@ public class PlayerController : MonoBehaviour
     public float sprint = 3;
     float speed;
 
+    // gravity settings (CharacterController doesn't apply gravity automatically)
+    public float gravity = -9.81f;
+    float verticalVelocity;
+
     public Animator animator;
     public readonly string moveAnimParameter = "Move";
 
