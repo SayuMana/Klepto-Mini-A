@@ -2,17 +2,12 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
+using UnityEngine.TextCore.Text;
 
 public class PlayerController : MonoBehaviour
 {
     CharacterController characterController;
-    public float movementSpeed = 5;
-    public float sprint = 3;
-    float speed;
-
-    public Animator animator;
-    public readonly string moveAnimParameter = "Move";
+    public float movementSpeed;
 
     void Awake()
     {
@@ -26,32 +21,24 @@ public class PlayerController : MonoBehaviour
 
     void Movement()
     {
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        float moveX = -Input.GetAxis("Horizontal");
+        float moveZ = -Input.GetAxis("Vertical");
         Vector3 move = new Vector3(moveX, 0, moveZ);
-
-        float moveAnim = new Vector2(moveX, moveZ).magnitude;
 
         if (Input.GetKey(KeyCode.LeftShift))
         {
-            speed = movementSpeed + sprint;
-            moveAnim *= 3f;
+            characterController.Move(move * (movementSpeed + 5) * Time.deltaTime); // sprint
         }
         else if (Input.GetKey(KeyCode.LeftControl))
         {
-            speed = movementSpeed - 3;
-            moveAnim *= 0.5f;
+            characterController.Move(move * (movementSpeed - 5) * Time.deltaTime); // sneak
         }
-        else
-        {
-            speed = movementSpeed;
-        }
-
-        characterController.Move(move * speed * Time.deltaTime);
-        animator.SetFloat(moveAnimParameter, moveAnim);
+        characterController.Move(move * movementSpeed * Time.deltaTime);
 
         if (moveX == 0 && moveZ == 0) return;
         float heading = MathF.Atan2(moveX, moveZ);
         transform.rotation = Quaternion.Euler(0, heading * Mathf.Rad2Deg, 0);
     }
+
+
 }

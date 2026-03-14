@@ -7,13 +7,10 @@ public class ItemPickup : MonoBehaviour
     public GameObject itemToPickup;
     private bool playerInRange = false;
 
-    public PlayerController player;
-
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            player = other.GetComponent<PlayerController>();
             Debug.Log("Player dalam range");
             playerInRange = true;
         }
@@ -33,7 +30,6 @@ public class ItemPickup : MonoBehaviour
         if (playerInRange && Input.GetKeyDown(KeyCode.E))
         {
             Debug.Log("Item diambil");
-            player.animator.SetTrigger("PickUp");
             Destroy(gameObject);
         }
     }
