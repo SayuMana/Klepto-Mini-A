@@ -1,6 +1,8 @@
 using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(CapsuleCollider))]
 public class PassiveEnemy : MonoBehaviour
 {
     [Header("Patrol")]
@@ -20,19 +22,25 @@ public class PassiveEnemy : MonoBehaviour
     [Header("References")]
     public Transform player;
 
-    private int waypointIndex  = 0;
-    private bool isWaiting     = false;
-    private bool hasAlerted    = false;
-    private float alertCooldown = 3f;
-    private float alertTimer    = 0f;
+    private int   waypointIndex  = 0;
+    private bool  isWaiting      = false;
+    private bool  hasAlerted     = false;
+    private float alertCooldown  = 3f;
+    private float alertTimer     = 0f;
 
     private AggressiveEnemy alertedEnemy = null;
+    private Rigidbody rb;
+
+    void Awake()
+    {
+        rb                = GetComponent<Rigidbody>();
+        rb.freezeRotation = true;
+        rb.useGravity     = true;
+        rb.interpolation  = RigidbodyInterpolation.Interpolate;
+    }
 
     void Update()
     {
-        if (currentState == State.Patrolling)
-            Patrol();
-
         CheckVision();
 
         if (hasAlerted)
@@ -46,23 +54,20 @@ public class PassiveEnemy : MonoBehaviour
         }
     }
 
-    void Patrol()
+    void FixedUpdate()
     {
-        if (waypoints.Length == 0 || isWaiting) return;
-
-        Transform target = waypoints[waypointIndex];
-        transform.position = Vector3.MoveTowards(
-            transform.position, target.position, moveSpeed * Time.deltaTime);
-
-        Vector3 dir = target.position - transform.position;
-        if (dir.sqrMagnitude > 0.001f)
+        if (currentState == State.Patrolling && !isWaiting && waypoints.Length > 0)
         {
-            Quaternion rot = Quaternion.LookRotation(dir);
-            transform.rotation = Quaternion.Slerp(transform.rotation, rot, Time.deltaTime * 5f);
-        }
+            MoveTowards(waypoints[waypointIndex].position);
 
-        if (Vector3.Distance(transform.position, target.position) < 0.1f)
-            StartCoroutine(WaitRoutine());
+            if (Vector3.Distance(transform.position, waypoints[waypointIndex].position) < 0.2f)
+                StartCoroutine(WaitRoutine());
+        }
+        else
+        {
+            // Stop horizontal saat Frozen atau menunggu di waypoint
+            rb.velocity = new Vector3(0, rb.velocity.y, 0);
+        }
     }
 
     IEnumerator WaitRoutine()
@@ -70,7 +75,7 @@ public class PassiveEnemy : MonoBehaviour
         isWaiting = true;
         yield return new WaitForSeconds(waitAtWaypoint);
         waypointIndex = (waypointIndex + 1) % waypoints.Length;
-        isWaiting = false;
+        isWaiting     = false;
     }
 
     void CheckVision()
@@ -86,7 +91,6 @@ public class PassiveEnemy : MonoBehaviour
 
             if (!hasAlerted || aggressiveIsReturning)
             {
-                // ── Alert baru: pertama detect, ATAU agresif sedang balik ke asal ──
                 alertedEnemy = nearest;
                 currentState = State.Frozen;
                 hasAlerted   = true;
@@ -98,12 +102,11 @@ public class PassiveEnemy : MonoBehaviour
                 );
 
                 Debug.Log(aggressiveIsReturning
-                    ? "[Passive] Player terdeteksi lagi! Agresif dialihkan saat ReturnToOrigin."
+                    ? "[Passive] Player terdeteksi lagi! Agresif dialihkan."
                     : "[Passive] Melihat player! Freeze & kirim alert ke agresif.");
             }
             else if (alertedEnemy != null)
             {
-                // ── Update posisi player tiap frame selama masih kelihatan ──
                 alertedEnemy.UpdateLastKnownPosition(player.position);
             }
         }
@@ -114,6 +117,50 @@ public class PassiveEnemy : MonoBehaviour
         alertedEnemy = null;
         currentState = State.Patrolling;
         Debug.Log("[Passive] Agresif sedang kembali ke asal. Lanjut patrol!");
+    }
+
+    // ─── GERAK VIA RIGIDBODY ─────────────────────────────────────────────
+    void MoveTowards(Vector3 target)
+    {
+        Vector3 dir = (target - transform.position);
+        dir.y = 0f;
+        dir   = dir.normalized;
+
+        Vector3 moveDir = SteerAroundObstacles(dir);
+
+        rb.velocity = new Vector3(moveDir.x * moveSpeed, rb.velocity.y, moveDir.z * moveSpeed);
+
+        if (moveDir.sqrMagnitude > 0.001f)
+        {
+            Quaternion rot = Quaternion.LookRotation(new Vector3(moveDir.x, 0, moveDir.z));
+            transform.rotation = Quaternion.Slerp(transform.rotation, rot, Time.fixedDeltaTime * 10f);
+        }
+    }
+
+    // ─── WALL SLIDING STEERING ────────────────────────────────────────────
+    Vector3 SteerAroundObstacles(Vector3 desiredDir)
+    {
+        float checkDist = 1.2f;
+
+        if (Physics.Raycast(transform.position, desiredDir, out RaycastHit hit, checkDist, obstacleMask))
+        {
+            Vector3 wallNormal = hit.normal;
+            wallNormal.y       = 0f;
+
+            // Geser menyusuri dinding
+            Vector3 slideDir = Vector3.ProjectOnPlane(desiredDir, wallNormal).normalized;
+
+            if (!Physics.Raycast(transform.position, slideDir, checkDist * 0.8f, obstacleMask))
+                return slideDir;
+
+            Vector3 perpDir = wallNormal;
+            if (!Physics.Raycast(transform.position, perpDir, checkDist * 0.8f, obstacleMask))
+                return perpDir;
+
+            return Vector3.zero;
+        }
+
+        return desiredDir;
     }
 
     public bool CanSeeTarget(Transform target)
